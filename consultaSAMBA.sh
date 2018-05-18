@@ -1,9 +1,5 @@
 #!/bin/bash
 ## Script para pegar do dk o ip que o usuario especificado esta conectado
-## ver com o comando id se o usuário existe para poder fazer ssh senao pede para digitar um.
-## para arrumar
-## quando buscar por martins, como exemplo, aparece 2 usuarios. tentar tratar todos os 
-## usuarios do resultado da busca.
 
 arg1=${1}
 arg2=${2}
