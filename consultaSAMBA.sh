@@ -1,11 +1,34 @@
 #!/bin/bash
 ## Script para pegar do dk o ip que o usuario especificado esta conectado
+## ver com o comando id se o usuário existe para poder fazer ssh senao pede para digitar um.
+## para arrumar
+## quando buscar por martins, como exemplo, aparece 2 usuarios. tentar tratar todos os 
+## usuarios do resultado da busca.
 
+arg1=${1}
+arg2=${2}
+
+### Funcao numero da versao ###
+version() {
+echo "${0} - Versão 2.5alpha"
+}
+
+### Funcao mensagem de erro ###
 erroMSG() {
 echo "Sintaxe errada, diferencie maiusculas das minusculas. Exemplo:"
 echo "Uso: $0 [[OPÇÃO...] [USUARIO]])"
 }
 
+### Funcao retorna quantidade usuarios encontrados ###
+lista() {
+for opt in $(seq 1 ${rep})
+  do
+  user=$(ssh -q root@dk /usr/bin/smbstatus | grep ${arg2} |head -n ${opt} |tail -n 1 |awk '{print $2}' )
+  echo "(${opt}) ${user}"
+done
+}
+
+### Funcao ajuda ###
 helpMSG() {
 
 echo "Nome
@@ -36,9 +59,6 @@ Arquivos
 
 ############## Inicio do programa #########################
 
-arg1=${1}
-arg2=${2}
-
 if [ $# -gt 2 ] ;
     then
 	erroMSG
@@ -47,25 +67,47 @@ elif [ ${arg1} = "-h" ] || [ ${arg1} = "--help" ] ;
     then
 	helpMSG
 	exit
+elif [ ${arg1} = "-v" ] || [ ${arg1} = "--version" ] ;
+    then
+	version
+	exit
 elif [ -z ${arg2} ] ;
     then
 	arg2=${arg1}
 	arg1=$(echo "-i")
 fi
 
-ip=$(ssh -q root@dk /usr/bin/smbstatus | grep ${arg2} |head -n 1 |tail -n 1 | cut -d "(" -f2 | cut -d ")" -f1 2> /dev/null)
+rep=$(ssh -q root@dk /usr/bin/smbstatus | grep ${arg2} |wc -l)
+rep=$(echo "${rep} / 2" |bc)
+
+case ${rep} in
+        1 )
+                choice=1
+        ;;
+        2 )
+                echo "Foi encontrado mais de um usuário!"
+                lista
+                echo -n "Qual sua escolha: "
+                read choice
+        ;;
+        * )
+                erroMSG
+                helpMSG
+        ;;
+esac
+
+ip=$(ssh -q root@dk /usr/bin/smbstatus | grep ${arg2} |head -n ${choice} |tail -n 1 | cut -d "(" -f2 | cut -d ")" -f1 )
 
 test=$(echo "${ip}" |cut -d ":" -f1)
 ipv6=$(echo "2804")
 if [ -z ${test} ];
     then
-	echo "O usuário ${arg2} não possui nenhum IP relacionado."
-	exit
-elif [ "${test}" == "${ipv6}" ];
-    then
-        true
-    else
         ip=$(echo "${ip}" |cut -d ":" -f4)
+	if [ -z ${ip} ];
+	    then
+		echo "O usuário ${arg2} não possui nenhum IP relacionado."
+		exit
+	fi
 fi
 
 case ${arg1} in
@@ -73,19 +115,15 @@ case ${arg1} in
 		vinagre [${ip}]::5900
 	;;
 	-i | --ip )
-		echo "O ip do usuario ${arg2} eh --> ${ip} <--."
+		user=$(ssh -q root@dk /usr/bin/smbstatus | grep ${arg2} |head -n ${choice} |tail -n 1 |awk '{print $2}' )
+		echo "O ip do usuario ${user} é --> ${ip} <--."
 	;;
 	-s | --ssh )
-		user=$(/usr/bin/whoami)
-		ssh -XC ${user}@${ip}
-	;;
-	-v | --version )
-		echo "${0} 2.3"
+		ssh -XC ctic@${ip}
 	;;
 	-*)
 		erroMSG
 	;;
-
 	*)
 		erroMSG
 		helpMSG
