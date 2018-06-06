@@ -1,5 +1,5 @@
 #!/bin/bash
-## Script para pegar do dk o ip que o usuario especificado esta conectado
+## Script para pegar do DK o ip que o usuario especificado estiver conectado
 
 arg1=${1}
 arg2=${2}
@@ -8,7 +8,7 @@ NC='\033[0m' # No Color
 
 ### Funcao numero da versao ###
 version() {
-echo "${0} - Versão 2.6alpha"
+echo "${0} - Versão 2.6"
 }
 
 ### Funcao mensagem de erro ###
@@ -30,10 +30,10 @@ done
 helpMSG() {
 
 echo "Nome
-usuario.sh - consulta um usuario no samba do DK
+CIULS - (C)onsulta (I)P (U)suário (L)ogado (S)amba
 
 Synopse
-bash /usr/bin/usuario.sh [opções] [usuário]
+ciuls [opções] [usuário]
 
 Descrição
 Este manual foi desenvolvido para facilitar o acesso remoto aos servidores do IFSC,
