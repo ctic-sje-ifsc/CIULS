@@ -3,15 +3,17 @@
 
 arg1=${1}
 arg2=${2}
+BRED='\033[1;31m'
+NC='\033[0m' # No Color
 
 ### Funcao numero da versao ###
 version() {
-echo "${0} - Versão 2.5alpha"
+echo "${0} - Versão 2.6alpha"
 }
 
 ### Funcao mensagem de erro ###
 erroMSG() {
-echo "Sintaxe errada, diferencie maiusculas das minusculas. Exemplo:"
+echo "Sintaxe errada. Exemplo:"
 echo "Uso: $0 [[OPÇÃO...] [USUARIO]])"
 }
 
@@ -47,26 +49,26 @@ Opções
                   não digitar nada.
 -s, --ssh         Abre uma conexão remota via ssh entre
                   o usuário logado e o usuário remoto.
--v, --version     Exibe a versão do software.
-
-Arquivos
-/usr/bin/usuario.sh"
+-v, --version     Exibe a versão do software."
 }
 
 ############## Inicio do programa #########################
-
 if [ $# -gt 2 ] ;
     then
 	erroMSG
-        exit
+        exit 1 
+elif [ $# -eq 0 ] ;
+    then
+	erroMSG
+        exit 1 
 elif [ ${arg1} = "-h" ] || [ ${arg1} = "--help" ] ;
     then
 	helpMSG
-	exit
+	exit 1 
 elif [ ${arg1} = "-v" ] || [ ${arg1} = "--version" ] ;
     then
 	version
-	exit
+	exit 1 
 elif [ -z ${arg2} ] ;
     then
 	arg2=${arg1}
@@ -76,21 +78,21 @@ fi
 rep=$(ssh -q root@dk /usr/bin/smbstatus | grep ${arg2} |wc -l)
 rep=$(echo "${rep} / 2" |bc)
 
-case ${rep} in
-        1 )
-                choice=1
-        ;;
-        2 )
-                echo "Foi encontrado mais de um usuário!"
+if [ ${rep} -eq 1 ] ;
+	then
+		choice=1
+elif [ ${rep} -ge 2  ] ;
+	then
+		echo "Foram encontrado ${rep} usuários!"
                 lista
                 echo -n "Qual sua escolha: "
                 read choice
-        ;;
-        * )
+elif [ ${rep} -lt 1 ];
+	then
                 erroMSG
                 helpMSG
-        ;;
-esac
+                exit 1
+fi
 
 ip=$(ssh -q root@dk /usr/bin/smbstatus | grep ${arg2} |head -n ${choice} |tail -n 1 | cut -d "(" -f2 | cut -d ")" -f1 )
 
@@ -101,8 +103,8 @@ if [ -z ${test} ];
         ip=$(echo "${ip}" |cut -d ":" -f4)
 	if [ -z ${ip} ];
 	    then
-		echo "O usuário ${arg2} não possui nenhum IP relacionado."
-		exit
+		echo -e "O usuário ${BRED}${arg2}${NC} não possui nenhum IP relacionado."
+		exit 1
 	fi
 fi
 
@@ -112,7 +114,7 @@ case ${arg1} in
 	;;
 	-i | --ip )
 		user=$(ssh -q root@dk /usr/bin/smbstatus | grep ${arg2} |head -n ${choice} |tail -n 1 |awk '{print $2}' )
-		echo "O ip do usuario ${user} é --> ${ip} <--."
+		echo -e "O ip do usuario ${BRED}${user}${NC} é ${BRED}${ip}${NC}."
 	;;
 	-s | --ssh )
 		ssh -XC ctic@${ip}
