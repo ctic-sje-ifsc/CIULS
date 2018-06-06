@@ -1,9 +1,26 @@
-# Scripts
+# CIULS
 
-Para o Script CIULS funcionar deve-se ter a sua chave pública no usuário root do servidor SAMBA em /root/.ssh/authorized_keys.
-Para facilitar o uso do script recomendo colocar em /usr/local/bin (ou qualquer outro que não seja o diretório raiz), editar o arquivo /home/${USUARIO}/.bashrc e adicionar um alias. Exemplo: alias ciuls='bash /usr/local/bin/consultaSAMBA.sh'
+O CIULS é um script que acessa via SSH com chave compartilhada um servidor SAMBA e consulta, com o comando smbstatus, o IP de um determinado usuário passado como parâmetro. Com ele é possível consultar o IP, fazer acesso ssh ou gráfico(VNC/Vinagre) na máquina que o usuário está logado.
 
-Como usar:
+## Observação:
+Para o CIULS funcionar deve-se ter a sua chave pública no usuário root do servidor SAMBA em /root/.ssh/authorized_keys.
+
+## Instalação:
+
+```bash 
+$ wget https://raw.githubusercontent.com/ctic-sje-ifsc/CIULS/master/ciuls
+```
+
+```bash 
+$ chmod +x ./ciuls
+```
+
+```bash
+$ sudo mv ./ciuls /usr/local/bin/ciuls
+```
+
+## Como usar:
+
 ```bash
 ciuls [opções] [usuário]
 
