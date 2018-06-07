@@ -27,9 +27,11 @@ ciuls [opções] [usuário]
 Opções
 -g, --grafico     Abre o Vinagre para ter acesso remoto.
 -h, --help        Exibe esta ajuda.
--i, --ip          Exibe apenas o ip do usuário. [Opção padrão caso o usuário
-                  não digitar nada.
+-i, --ip          Exibe apenas o ip do usuário. [Opção padrão
+                  caso o usuário não digitar nada.]
+-n, --nome        Pesquisa o UID de um usuário através
+                  de seu nome.
 -s, --ssh         Abre uma conexão remota via ssh entre
                   o usuário logado e o usuário remoto.
--v, --version     Exibe a versão do software.
+-v, --version     Exibe a versão do software."
 ```
