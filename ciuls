@@ -85,20 +85,20 @@ fi
 ### Funcao ajuda ###
 helpMSG() {
 
-echo -e "\e[1;30mNome\e[0;30m
+echo "Nome
 CIULS - (C)onsulta (I)P (U)suário (L)ogado (S)amba
 
-\e[1;30mSynopse\e[0;30m
+Synopse
 bash ${0} [opção] [usuário]
 
-\e[1;30mDescrição\e[0;30m
+Descrição
 Este manual foi desenvolvido para facilitar o acesso remoto aos servidores do IFSC,
 para funcionar corretamente é necessário que seu usuário esteja no LDAP do ifsc, no 
 caso de acesso SSH, e é fundamental que a chave publica do SSH do seu usuário esteja
 no servidor de arquivos. Para abrir o modo gráfico do acesso remoto é necessário ter
 instalado no computador o visualizador de área remota chamado vinagre.
 
-\e[1;30mOpções\e[0;30m
+Opções
 -g, --grafico     Abre o Vinagre para ter acesso remoto.
 -h, --help        Exibe esta ajuda.
 -i, --ip          Exibe apenas o ip do usuário. [Opção padrão
