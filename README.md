@@ -31,6 +31,8 @@ Opções
                   caso o usuário não digitar nada.]
 -n, --nome        Pesquisa o UID de um usuário através
                   de seu nome.
+-p, --permissao   Lista todos os grupos que o usuário
+                  especificado tem permissão de acesso. (em teste)
 -s, --ssh         Abre uma conexão remota via ssh entre
                   o usuário logado e o usuário remoto.
 -v, --version     Exibe a versão do software."
