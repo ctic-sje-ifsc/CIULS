@@ -146,15 +146,9 @@ case ${arg1} in
 	;;
 	-p | --permissao )
 		repeticao
-		if [ ${choice} -eq 1 ] ;
-		  then
-		    echo -e "Grupos ao qual o usuario ${BRED}${arg2}${NC} pertence:"
-		    ssh -q root@dk id ${arg2}
-		  else
-		    user=$(ssh -q root@dk /usr/bin/smbstatus | grep ${arg2} |head -n ${choice} |tail -n 1 |awk '{print $2}' )
-		    echo -e "Grupos ao qual o usuario ${BRED}${user}${NC} pertence:"
-		    ssh -q root@dk id ${user}
-		fi
+		user=$(ssh -q root@dk /usr/bin/smbstatus | grep ${arg2} |head -n ${choice} |tail -n 1 |awk '{print $2}' )
+		echo -e "Grupos ao qual o usuario ${BRED}${user}${NC} pertence:"
+		ssh -q root@dk id ${user}
 	;;
 	-s | --ssh )
 		repeticao
