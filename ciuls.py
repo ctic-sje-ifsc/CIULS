@@ -34,10 +34,10 @@ class ciuls(object):
     def helpMSG(self):
         return '''
 Nome
-CIULS - (C)onsulta(I)P(U)suário(L)ogado(S)amba
+CIULS - (C)onsulta (I)P (U)suário (L)ogado (S)amba
 
 Synopse
-python ''' + self.comando + ''' [opção][usuário]
+python ''' + self.comando + ''' [opção] [usuário]
 
 Descrição
 Este manual foi desenvolvido para facilitar o acesso remoto aos servidores do IFSC,
@@ -64,31 +64,35 @@ Opções
         listaUsers = []
         stdin, stdout, stderr = self.ssh.exec_command(
             "/usr/bin/smbstatus -b |grep %s |wc -l" % self.args)
-        rep = stdout.read()
-        if (int(rep) == 1):
+        rep = int(stdout.read().decode('UTF-8'))
+        if (rep == 1):
             stdin, stdout, stderr = self.ssh.exec_command(
                 "/usr/bin/smbstatus -b |grep %s |awk '{print $2}'" % self.args)
             listaUsers = stdout.read().splitlines()
             choice = 0
-        elif (int(rep) >= 2):
-            newRep, listaUsers = lista(rep)
-            choice = raw_input('Qual sua escolha: ')
-            choice = int(choice) - 1
+        elif (rep >= 2):
+            user = []
+            stdin, stdout, stderr = self.ssh.exec_command(
+            "/usr/bin/smbstatus -b |grep %s |awk '{print $2}'" % self.args)
+            listaUsers = stdout.read().splitlines()
+            for i, line in enumerate(listaUsers, 1):
+                print(str(i) + ')', line.decode('UTF-8'))
+            choice = int(input('Qual sua escolha: '))
+            choice -= 1
         else:
             listaUsers = []
             choice = 0
         return choice, listaUsers
 
-    def lista(self, rep):
-        repeat = (str(rep))
-        user = []
-        teste = []
-        stdin, stdout, stderr = self.ssh.exec_command(
-            "/usr/bin/smbstatus -b |grep %s |awk '{print $2}'" % args)
-        user = stdout.read().splitlines()
-        for i, line in enumerate(user, 1):
-            print(i, ')', line)
-        return rep, user
+    # def lista(self, rep):
+    #     repeat = (str(rep))
+    #     user = []
+    #     stdin, stdout, stderr = self.ssh.exec_command(
+    #         "/usr/bin/smbstatus -b |grep %s |awk '{print $2}'" % args)
+    #     user = stdout.read().splitlines()
+    #     for i, line in enumerate(user, 1):
+    #         print(str(i) + ')', line.decode('UTF-8'))
+    #     return rep, user
 
     def pesquisa(self, choice):
         choice = choice + 1
@@ -124,8 +128,8 @@ if __name__ == "__main__":
         print('FATAL ERROR:', err)
         sys.exit(1)
     else:
-        print(options)
-        print(args)
+        # print(options)
+        # print(args)
         BRED = "\033[1;31m"
         NC = "\033[0;0m"
         comando = sys.argv[0]
@@ -146,8 +150,9 @@ if __name__ == "__main__":
             elif opt in ('-i', '--ip'):
                 choice, user = programa.repeticao()
                 ip = programa.pesquisa(choice)
+                print('choice eh', choice, 'user é', user, 'ip eh', ip)
                 print("O IP do usuário", BRED +
-                    str(user[choice].decode('UTF-8')) + NC, "é", ip.decode('UTF-8'))
+                      str(user[choice].decode('UTF-8')) + NC, "é", ip.decode('UTF-8'))
         #     elif opt in ('-n', '--nome'):
         #         nome(args)
         #         ssh.close()
@@ -169,10 +174,10 @@ if __name__ == "__main__":
         #         ssh.close()
         #         subprocess.Popen(
         #             ["konsole", "--hold", "-e", "ssh -XC", "ctic@" + ip], stdout=subprocess.PIPE).communicate()[0]
-        # # subprocess.Popen(["konsole", "--hold", "-e", "ssh -XC", "ctic@" + ip],
-        # # env=dict(os.environ, DISPLAY=":0.0",
-        # # XAUTHORITY="/home/rmartins/.Xauthority",
-        # # stdout=subprocess.PIPE).communicate()[0]
+        # subprocess.Popen(["konsole", "--hold", "-e", "ssh -XC", "ctic@" + ip],
+        # env=dict(os.environ, DISPLAY=":0.0",
+        # XAUTHORITY="/home/rmartins/.Xauthority",
+        # stdout=subprocess.PIPE).communicate()[0]
         #         sys.exit(1)
         #     else:
         #         erroMSG()
