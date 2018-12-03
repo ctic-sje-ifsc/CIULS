@@ -15,7 +15,6 @@ class ciuls(object):
             self.args = args[0]
         else:
             self.args = ''
-        self.erros = open(os.devnull, 'w')
         self.login = {"username": "root", "hostname": "dk"}
         self.ssh = paramiko.SSHClient()
         self.ssh.load_system_host_keys()
@@ -37,7 +36,12 @@ Nome
 CIULS - (C)onsulta (I)P (U)suário (L)ogado (S)amba
 
 Synopse
-python ''' + self.comando + ''' [opção] [usuário]
+python3 ''' + self.comando + ''' [opção] [usuário]
+
+Programas
+Programas necessários para a execução correta deste script:
+As root: apt-get install ssh, vinagre, python3, pip3
+As user: pip install paramiko
 
 Descrição
 Este manual foi desenvolvido para facilitar o acesso remoto aos servidores do IFSC,
@@ -60,7 +64,9 @@ Opções
 -v, --version     Exibe a versao do software.
 '''
 
-    def repeticao(self):
+# Função para pesquisar no DK o argumento passado
+# retorna uma lista de usuários e a quantidade
+    def consulta(self):
         listaUsers = []
         stdin, stdout, stderr = self.ssh.exec_command(
             "/usr/bin/smbstatus -b |grep %s |wc -l" % self.args)
@@ -68,57 +74,66 @@ Opções
         if (rep == 1):
             stdin, stdout, stderr = self.ssh.exec_command(
                 "/usr/bin/smbstatus -b |grep %s |awk '{print $2}'" % self.args)
-            listaUsers = stdout.read().splitlines()
+            user = stdout.read().splitlines()[0].decode('UTF-8')
             choice = 0
         elif (rep >= 2):
             user = []
             stdin, stdout, stderr = self.ssh.exec_command(
-            "/usr/bin/smbstatus -b |grep %s |awk '{print $2}'" % self.args)
+                "/usr/bin/smbstatus -b |grep %s |awk '{print $2}'" % self.args)
             listaUsers = stdout.read().splitlines()
             for i, line in enumerate(listaUsers, 1):
                 print(str(i) + ')', line.decode('UTF-8'))
             choice = int(input('Qual sua escolha: '))
             choice -= 1
+            user = listaUsers[choice].decode('UTF-8')
         else:
             listaUsers = []
             choice = 0
-        return choice, listaUsers
+        return choice, user
 
-    # def lista(self, rep):
-    #     repeat = (str(rep))
-    #     user = []
-    #     stdin, stdout, stderr = self.ssh.exec_command(
-    #         "/usr/bin/smbstatus -b |grep %s |awk '{print $2}'" % args)
-    #     user = stdout.read().splitlines()
-    #     for i, line in enumerate(user, 1):
-    #         print(str(i) + ')', line.decode('UTF-8'))
-    #     return rep, user
-
+# Função para mostrar e tratar o ip do usuário
+# retorna o ipv4 ou ipv6 do usuário
     def pesquisa(self, choice):
         choice = choice + 1
         stdin, stdout, stderr = self.ssh.exec_command(
-            "/usr/bin/smbstatus |grep %s |head -n %s |tail -n 1 |cut -d '(' -f2 | cut -d ')' -f1" % (self.args, str(choice)))
-        ip = stdout.read().rstrip()
+            "/usr/bin/smbstatus -b |grep %s |head -n %s |tail -n 1 |cut -d '(' -f2 | cut -d ')' -f1" % (self.args, str(choice)))
+        ip = stdout.read().rstrip().decode('UTF-8')
         if (ip[:4] != str(2804)):
             ip = ip[7:]
         return ip
 
-    def nome(self, args):
+# Função que procura o nome de uma pessoa e retorna seu usuário e o UID
+    def nome(self):
         stdin, stdout, stderr = self.ssh.exec_command(
-            "ldapsearch -x -h vm-bd1 -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep uid: | wc -l" % (args))
-        contNome = stdout.read().rstrip()
+            "ldapsearch -x -h vm-bd1 -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep uid: | wc -l" % (self.args))
+        contNome = stdout.read().rstrip().decode('UTF-8')
         y = int(contNome) + 1
         stdin, stdout, stderr = self.ssh.exec_command(
-            'ldapsearch -x -h vm-bd1 -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep displayName | cut -d ":" -f2 | head -n %s | tail -n %s' % (args, str(y), contNome))
-        nomes = stdout.read().splitlines()
+            'ldapsearch -x -h vm-bd1 -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep displayName | cut -d ":" -f2 | head -n %s | tail -n %s' % (self.args, str(y), contNome))
+        nomes = []
+        temp = stdout.read().splitlines()
+        for i in temp:
+            nomes.append(i.decode('UTF-8'))
         stdin, stdout, stderr = self.ssh.exec_command(
-            'ldapsearch -x -h vm-bd1 -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep uid: | cut -d ":" -f2 | head -n %s | tail -n %s' % (args, str(y), contNome))
-        usuario = stdout.read().splitlines()
+            'ldapsearch -x -h vm-bd1 -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep uid: | cut -d ":" -f2 | head -n %s | tail -n %s' % (self.args, str(y), contNome))
+        temp = stdout.read().splitlines()
+        usuario = []
+        for i in temp:
+            usuario.append(i.decode('UTF-8'))
         for i, x in zip(nomes, usuario):
             print('O usuário' + BRED + i + NC,
                   'tem o UID' + BRED + x + NC + '.')
         return
 
+# Função que pesquisa a permissão de um usuário específico
+    def permissao(self):
+        stdin, stdout, stderr = self.ssh.exec_command(
+            "/usr/bin/smbstatus -b |grep %s |head -n 1 |tail -n 1 |awk '{print $2}'" % (self.args))
+        user = stdout.read().rstrip().decode('UTF-8')
+        stdin, stdout, stderr = self.ssh.exec_command("id %s" % (self.args))
+        grupo = stdout.read().rstrip().decode('UTF-8')
+        print("Grupos ao qual o usuário", BRED +
+              str(user) + NC, "pertence:\n", grupo)
 
 if __name__ == "__main__":
     try:
@@ -128,58 +143,43 @@ if __name__ == "__main__":
         print('FATAL ERROR:', err)
         sys.exit(1)
     else:
-        # print(options)
-        # print(args)
         BRED = "\033[1;31m"
         NC = "\033[0;0m"
         comando = sys.argv[0]
         programa = ciuls(comando, args)
-        for opt, arg in options:
-            if opt in ('-h', '--help'):
-                print(programa.helpMSG())
-            elif opt in ('-v', '--version'):
-                print(programa.version())
-        #      elif opt in ('-g', '--grafico'):
-        #         choice, user = self.repeticao(self.args)
-        #         ip = pesquisa(self.args, choice)
-        #         ssh.close()
-        #         ip = "[" + ip + "]::5900"
-        #         subprocess.Popen(
-        #             ["vinagre", ip], stderr=erros, stdout=subprocess.PIPE).communicate()[0]
-        #         sys.exit(1)
-            elif opt in ('-i', '--ip'):
-                choice, user = programa.repeticao()
-                ip = programa.pesquisa(choice)
-                print('choice eh', choice, 'user é', user, 'ip eh', ip)
-                print("O IP do usuário", BRED +
-                      str(user[choice].decode('UTF-8')) + NC, "é", ip.decode('UTF-8'))
-        #     elif opt in ('-n', '--nome'):
-        #         nome(args)
-        #         ssh.close()
-        #         sys.exit(1)
-        #     elif opt in ('-p', '--permissao'):
-        #         choice, user = self.repeticao(self.args)
-        #         stdin, stdout, stderr = ssh.exec_command(
-        #             "/usr/bin/smbstatus |grep %s |head -n 1 |tail -n 1 |awk '{print $2}'" % (args))
-        #         user = stdout.read().rstrip()
-        #         stdin, stdout, stderr = ssh.exec_command("id %s" % (args))
-        #         grupo = stdout.read().rstrip()
-        #         print("Grupos ao qual o usuário", BRED +
-        #               str(user) + NC, "pertence:\n", grupo)
-        #         ssh.close()
-        #         sys.exit(1)
-        #     elif opt in ('-s', '--ssh'):
-        #         choice, user = repeticao(args)
-        #         ip = pesquisa(args, choice)
-        #         ssh.close()
-        #         subprocess.Popen(
-        #             ["konsole", "--hold", "-e", "ssh -XC", "ctic@" + ip], stdout=subprocess.PIPE).communicate()[0]
-        # subprocess.Popen(["konsole", "--hold", "-e", "ssh -XC", "ctic@" + ip],
-        # env=dict(os.environ, DISPLAY=":0.0",
-        # XAUTHORITY="/home/rmartins/.Xauthority",
-        # stdout=subprocess.PIPE).communicate()[0]
-        #         sys.exit(1)
-        #     else:
-        #         erroMSG()
-        #         helpMSG()
-        #         sys.exit(1)
+        # print('teste', args.pop(1)) ## tentativa de tratar mais de uma opção
+        # ao mesmo tempo
+        if len(args) == 1:
+            for opt, arg in options:
+                if opt in ('-h', '--help'):
+                    print(programa.helpMSG())
+                elif opt in ('-v', '--version'):
+                    print(programa.version())
+                elif opt in ('-g', '--grafico'):
+                    choice, user = programa.consulta()
+                    ip = programa.pesquisa(choice)
+                    ip = "[" + ip + "]::5900"
+                    erros = open(os.devnull, 'w')
+                    subprocess.Popen(
+                        ["vinagre", ip], stderr=erros, stdout=subprocess.PIPE).communicate()[0]
+                elif opt in ('-i', '--ip'):
+                    choice, user = programa.consulta()
+                    ip = programa.pesquisa(choice)
+                    print("O IP do usuário", BRED + user + NC, "é", ip)
+                elif opt in ('-n', '--nome'):
+                    programa.nome()
+                elif opt in ('-p', '--permissao'):
+                    programa.permissao()
+                elif opt in ('-s', '--ssh'):
+                    choice, user = programa.consulta()
+                    ip = programa.pesquisa(choice)
+                    print('ssh')
+                    # subprocess.Popen(
+                    #     ["konsole", "--hold", "-e", "ssh -XC", "ctic@" + ip], stdout=subprocess.PIPE).communicate()[0]
+                    # subprocess.Popen(["konsole", "--hold", "-e", "ssh -XC", "ctic@" + ip],
+                    # env=dict(os.environ, DISPLAY=":0.0",
+                    # XAUTHORITY="/home/rmartins/.Xauthority",
+                    # stdout=subprocess.PIPE).communicate()[0]
+        else:
+           print(programa.erroMSG())
+           print(programa.helpMSG())
