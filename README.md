@@ -6,8 +6,10 @@ O CIULS é um script que acessa via SSH com chave compartilhada um servidor SAMB
 Para o CIULS funcionar deve-se ter a sua chave pública no usuário root do servidor SAMBA em /root/.ssh/authorized_keys.
 
 ## Programas necessários para a execução correta deste script:
-$ sudo apt-get install ssh, vinagre, python3, pip3
+$ sudo apt-get install ssh vinagre python3 python3-pip python3-setuptools
+
 $ pip3 install paramiko
+
 ## Instalação:
 
 ```bash
@@ -15,11 +17,11 @@ $ wget https://raw.githubusercontent.com/ctic-sje-ifsc/CIULS/master/ciuls.py
 ```
 
 ```bash
-$ chmod +x ./ciuls
+$ chmod +x ./ciuls.py
 ```
 
 ```bash
-$ sudo mv ./ciuls /usr/local/bin/ciuls
+$ sudo mv ./ciuls.py /usr/local/bin/ciuls
 ```
 
 ## Como usar:
