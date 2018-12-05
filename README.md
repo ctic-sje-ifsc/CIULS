@@ -1,17 +1,20 @@
 # CIULS
 
-O CIULS é um script que acessa via SSH com chave compartilhada um servidor SAMBA e consulta, com o comando smbstatus, o IP de um determinado usuário passado como parâmetro. Com ele é possível consultar o IP, fazer acesso ssh ou gráfico(VNC/Vinagre) na máquina que o usuário está logado.
+O CIULS é um script que acessa via SSH com chave compartilhada um servidor SAMBA e consulta, com o comando smbstatus, o IP de um determinado usuário passado como parâmetro. Com ele é possível consultar o usuário pelo nome, consultar o IP, fazer acesso ssh ou gráfico(VNC/Vinagre) na máquina que o usuário está logado e visualizar permissões de usuário no compartilhamento de arquivos.
 
 ## Observação:
 Para o CIULS funcionar deve-se ter a sua chave pública no usuário root do servidor SAMBA em /root/.ssh/authorized_keys.
 
+## Programas necessários para a execução correta deste script:
+$ sudo apt-get install ssh, vinagre, python3, pip3
+$ pip3 install paramiko
 ## Instalação:
 
-```bash 
-$ wget https://raw.githubusercontent.com/ctic-sje-ifsc/CIULS/master/ciuls
+```bash
+$ wget https://raw.githubusercontent.com/ctic-sje-ifsc/CIULS/master/ciuls.py
 ```
 
-```bash 
+```bash
 $ chmod +x ./ciuls
 ```
 

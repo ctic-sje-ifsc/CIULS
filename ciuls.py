@@ -10,11 +10,6 @@ import paramiko
 class ciuls(object):
 
     def __init__(self):
-        # self.comando = comando
-        # if len(args) > 0:
-        #     args = args[0]
-        # else:
-        #     args = ''
         self.login = {"username": "root", "hostname": "dk"}
         self.ssh = paramiko.SSHClient()
         self.ssh.load_system_host_keys()
@@ -117,7 +112,7 @@ if __name__ == "__main__":
         parser.add_argument(
             '-s', '--ssh', metavar='NOME/USUÁRIO', help='Conecta, através de ssh no computador em que o usuário está conectado.')
         parser.add_argument(
-            '-v', '--version', action='version', version='%(prog)s - Versão 3.0 Alpha')
+            '-v', '--version', action='version', version='%(prog)s - Versão 3.0 Beta')
         # parser.get_default('ssh')
         argumento = parser.parse_args()
     except:
