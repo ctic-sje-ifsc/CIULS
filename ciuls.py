@@ -21,49 +21,6 @@ class ciuls(object):
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.ssh.connect(**self.login)
 
-    def main(self, options):
-        pass
-
-    def version(self):
-        return self.comando + ' - Versão 3.0 Alpha'
-
-    def erroMSG(self):
-        return 'Sintaxe errada. Exemplo:\nUso: ' + self.comando + ' ( [OPÇÂO...] [USUÁRIO] )\n\nPara mais informações digite: ' + self.comando + ' -h ou --help'
-
-    def helpMSG(self):
-        return '''
-Nome
-CIULS - (C)onsulta (I)P (U)suário (L)ogado (S)amba
-
-Synopse
-python3 ''' + self.comando + ''' [opção] [usuário]
-
-Programas
-Programas necessários para a execução correta deste script:
-Como root: apt-get install ssh, vinagre, python3, pip3
-Como usuário: pip install paramiko
-
-Descrição
-Este manual foi desenvolvido para facilitar o acesso remoto aos servidores do IFSC,
-para funcionar corretamente é necessário que seu usuário esteja no LDAP do ifsc, no
-caso de acesso SSH, e é fundamental que a chave pública do SSH do seu usuário esteja
-no servidor de arquivos. Para abrir o modo gráfico do acesso remoto é necessário ter
-instalado no computador o visualizador de área remota chamado vinagre.
-
-Opções
--g, --grafico     Abre o Vinagre para ter acesso remoto.
--h, --help        Exibe esta ajuda.
--i, --ip          Exibe apenas o ip do usuario. [Opcao padrao
-                  caso o usuario nao digitar nada.]
--n, --nome        Pesquisa o UID de um usuario atraves
-                  de seu nome.
--p, --permissao   Lista todos os grupos que o usuario
-                  especificado tem permissao de acesso.
--s, --ssh         Abre uma conexao remota via ssh entre
-                  o usuario logado e o usuario remoto.
--v, --version     Exibe a versao do software.
-'''
-
 # Função para pesquisar no DK o argumento passado
 # retorna uma lista de usuários e a quantidade
     def consulta(self, args):
@@ -89,6 +46,7 @@ Opções
         else:
             listaUsers = []
             choice = 0
+            user = []
         return choice, user
 
 # Função para mostrar e tratar o ip do usuário
@@ -112,17 +70,20 @@ Opções
             'ldapsearch -x -h vm-bd1 -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep displayName | cut -d ":" -f2 | head -n %s | tail -n %s' % (args, str(y), contNome))
         nomes = []
         temp = stdout.read().splitlines()
-        for i in temp:
-            nomes.append(i.decode('UTF-8'))
-        stdin, stdout, stderr = self.ssh.exec_command(
-            'ldapsearch -x -h vm-bd1 -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep uid: | cut -d ":" -f2 | head -n %s | tail -n %s' % (args, str(y), contNome))
-        temp = stdout.read().splitlines()
-        usuario = []
-        for i in temp:
-            usuario.append(i.decode('UTF-8'))
-        for i, x in zip(nomes, usuario):
-            print('O usuário' + BRED + i + NC,
-                  'tem o UID' + BRED + x + NC + '.')
+        if len(temp):
+            for i in temp:
+                nomes.append(i.decode('UTF-8'))
+            stdin, stdout, stderr = self.ssh.exec_command(
+                'ldapsearch -x -h vm-bd1 -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep uid: | cut -d ":" -f2 | head -n %s | tail -n %s' % (args, str(y), contNome))
+            temp = stdout.read().splitlines()
+            usuario = []
+            for i in temp:
+                usuario.append(i.decode('UTF-8'))
+            for i, x in zip(nomes, usuario):
+                print('O usuário' + BRED + i + NC,
+                    'tem o UID' + BRED + x + NC + '.')
+        else:
+            print('Não foi possível encontrar o usuário ' + BRED + args + NC + '.')
         return
 
 # Função que pesquisa a permissão de um usuário específico
@@ -130,13 +91,20 @@ Opções
         stdin, stdout, stderr = self.ssh.exec_command(
             "/usr/bin/smbstatus -b |grep %s |head -n 1 |tail -n 1 |awk '{print $2}'" % (args))
         user = stdout.read().rstrip().decode('UTF-8')
-        stdin, stdout, stderr = self.ssh.exec_command("id %s" % (args))
-        grupo = stdout.read().rstrip().decode('UTF-8')
-        print("Grupos ao qual o usuário", BRED +
-              str(user) + NC, "pertence:\n", grupo)
+        if len(user):
+            stdin, stdout, stderr = self.ssh.exec_command("id %s" % (args))
+            grupo = stdout.read().rstrip().decode('UTF-8')
+            print("Grupos ao qual o usuário", BRED +
+                str(user) + NC, "pertence:\n", grupo)
+        else:
+                print('Não foi possível encontrar o usuário ' + BRED + args + NC + '.')
 
 if __name__ == "__main__":
     try:
+        if sys.argv[1] == '-v' or sys.argv[1] == '-h':
+            pass
+        elif len(sys.argv) == 2 and str(sys.argv[1])[0] != '-':
+            sys.argv = ['./ciuls.py', '-i', sys.argv[1]]
         parser = argparse.ArgumentParser(prog='CIULS')
         parser.add_argument(
             '-g', '--grafico', metavar='NOME/USUÁRIO', help='Acesso remoto na máquina em que o usuário está conectado.')
@@ -153,7 +121,6 @@ if __name__ == "__main__":
         # parser.get_default('ssh')
         argumento = parser.parse_args()
     except:
-        #parser.print_help()
         sys.exit(1)
     else:
         BRED = "\033[1;31m"
@@ -162,20 +129,32 @@ if __name__ == "__main__":
         programa = ciuls()
         if argumento.grafico:
             choice, user = programa.consulta(argumento.grafico)
-            ip = programa.pesquisa(choice, argumento.grafico)
-            ip = "[" + ip + "]::5900"
-            erros = open(os.devnull, 'w')
-            subprocess.Popen(
-                ["vinagre", ip], stderr=erros, stdout=subprocess.PIPE).communicate()[0]
+            if len(user):
+                ip = programa.pesquisa(choice, argumento.grafico)
+                ip = "[" + ip + "]::5900"
+                erros = open(os.devnull, 'w')
+                subprocess.Popen(
+                    ["vinagre", ip], stderr=erros, stdout=subprocess.PIPE).communicate()[0]
+            else:
+                print("O usuário", BRED +
+                    argumento.grafico + NC, "não possui nenhum endereço IP associado.")
         if argumento.ip:
             choice, user = programa.consulta(argumento.ip)
-            ip = programa.pesquisa(choice, argumento.ip)
-            print("O IP do usuário", BRED + user + NC, "é", ip)
+            if len(user):
+                ip = programa.pesquisa(choice, argumento.ip)
+                print("O IP do usuário", BRED + user + NC, "é", ip)
+            else:
+                print("O usuário", BRED +
+                    argumento.ip + NC, "não possui nenhum endereço IP associado.")
         if argumento.nome:
             programa.nome(argumento.nome)
         if argumento.permissao:
             programa.permissao(argumento.permissao)
         if argumento.ssh:
             choice, user = programa.consulta(argumento.ssh)
-            ip = programa.pesquisa(choice, argumento.ssh)
-            subprocess.call("ssh -XC ctic@" + ip, shell=True)
+            if len(user):
+                ip = programa.pesquisa(choice, argumento.ssh)
+                subprocess.call("ssh -XC ctic@" + ip, shell=True)
+            else:
+                print("O usuário", BRED +
+                    argumento.ssh + NC, "não possui nenhum endereço IP associado.")
