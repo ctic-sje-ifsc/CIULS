@@ -150,7 +150,6 @@ if __name__ == "__main__":
         if argumento.ip:  # Se tiver o argumento -i ou --ip
             choice, user, ips = programa.consulta(argumento.ip)
             if len(user):  # caso variavel user não seja nula
-                print('teste de continuidade.', ips)
                 ip = programa.trataIP(ips)
                 print("O IP do usuário", BRED + user + NC, "é", ip)
             else:
