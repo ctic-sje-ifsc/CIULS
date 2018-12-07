@@ -22,35 +22,47 @@ class ciuls(object):
         listaUsers = []
         user = []
         stdin, stdout, stderr = self.ssh.exec_command(
-            "/usr/bin/smbstatus -b |grep %s |wc -l" % args)
-        rep = int(stdout.read().decode('UTF-8'))
+            "/usr/bin/smbstatus -b |grep %s" % args)
+        saida = stdout.read().decode('UTF-8')
+        rep = len(saida.split('\n')) - 1
         if (rep == 1):  # caso encontre apenas um usuário
-            stdin, stdout, stderr = self.ssh.exec_command(
-                "/usr/bin/smbstatus -b |grep %s |awk '{print $2}'" % args)
-            user = stdout.read().splitlines()[0].decode('UTF-8')
-            choice = 0
+            num, user_table, ips = programa.organiza(saida)
+            choice = int(num[0]) - 1
+            user = user_table[choice]
+            ips = ips[choice]
         elif (rep >= 2):  # caso encontre vários usuários
-            stdin, stdout, stderr = self.ssh.exec_command(
-                "/usr/bin/smbstatus -b |grep %s |awk '{print $2}'" % args)
-            listaUsers = stdout.read().splitlines()
-            for i, line in enumerate(listaUsers, 1):  # Enumerando todos os usuário encontrados
-                print(str(i) + ')', line.decode('UTF-8'))
+            num, user_table, ips = programa.organiza(saida)
+            y = 0
+            for i in user_table:
+                print(num[y] + ")", i, '  \t-\t[' + ips[y] + ']')
+                y += 1
             choice = int(input('Qual sua escolha: '))
             choice -= 1
-            user = listaUsers[choice].decode('UTF-8')
+            user = user_table[choice]
+            ips = ips[choice]
         else:
             listaUsers = []
             choice = 0
             user = []
-        return choice, user
+        return choice, user, ips
 
-# Função para mostrar e tratar o ip do usuário
-# retorna o ipv4 ou ipv6 do usuário
-    def pesquisa(self, choice, args):
-        choice = choice + 1
-        stdin, stdout, stderr = self.ssh.exec_command(
-            "/usr/bin/smbstatus -b |grep %s |head -n %s |tail -n 1 |cut -d '(' -f2 | cut -d ')' -f1" % (args, str(choice)))
-        ip = stdout.read().rstrip().decode('UTF-8')
+# Função que recebe os dados do comando smbstatus e retorna só usuário e ip
+    def organiza(self, tabela):
+        tabelaNum = []
+        tabelaUser = []
+        tabelaIp = []
+        y = 1
+        for i in tabela.split("\n"):
+            if i:
+                tabelaNum.append(str(y))
+                y += 1
+                tabelaUser.append(i.split()[1])
+                enumerate(tabelaUser, 1)
+                tabelaIp.append(i.split().pop().strip("()"))
+        return tabelaNum, tabelaUser, tabelaIp
+
+# Função para organizar o endeço ipv4 e ipv6
+    def trataIP(self, ip):
         if (ip[:4] != str(2804)):  # tratando ipv4 ou ipv6
             ip = ip[7:]
         return ip
@@ -124,9 +136,9 @@ if __name__ == "__main__":
         NC = "\033[0;0m"  # Texto sem formatação
         programa = ciuls()
         if argumento.grafico:  # Se tiver o argumento -g ou --grafico
-            choice, user = programa.consulta(argumento.grafico)
+            choice, user, ips = programa.consulta(argumento.grafico)
             if len(user):  # caso variavel user não seja nula
-                ip = programa.pesquisa(choice, argumento.grafico)
+                ip = programa.trataIP(ips)
                 ip = "[" + ip + \
                     "]::5900"  # preparando o ip para ser passado como parametro para o vinagre
                 erros = open(os.devnull, 'w')
@@ -136,9 +148,10 @@ if __name__ == "__main__":
                 print("O usuário", BRED +
                       argumento.grafico + NC, "não possui nenhum endereço IP associado.")
         if argumento.ip:  # Se tiver o argumento -i ou --ip
-            choice, user = programa.consulta(argumento.ip)
+            choice, user, ips = programa.consulta(argumento.ip)
             if len(user):  # caso variavel user não seja nula
-                ip = programa.pesquisa(choice, argumento.ip)
+                print('teste de continuidade.', ips)
+                ip = programa.trataIP(ips)
                 print("O IP do usuário", BRED + user + NC, "é", ip)
             else:
                 print("O usuário", BRED +
@@ -148,10 +161,11 @@ if __name__ == "__main__":
         if argumento.permissao:  # Se tiver o argumento -p ou --permissao
             programa.permissao(argumento.permissao)
         if argumento.ssh:  # Se tiver o argumento -s ou --ssh
-            choice, user = programa.consulta(argumento.ssh)
+            choice, user, ips = programa.consulta(argumento.ssh)
             if len(user):  # caso variavel user não seja nula
-                ip = programa.pesquisa(choice, argumento.ssh)
+                ip = programa.trataIP(ips)
                 subprocess.call("ssh -XC ctic@" + ip, shell=True)
+                sys.exit(0)
             else:
                 print("O usuário", BRED +
                       argumento.ssh + NC, "não possui nenhum endereço IP associado.")
