@@ -126,7 +126,7 @@ if __name__ == "__main__":
         parser.add_argument(
             '-s', '--ssh', metavar='NOME/USUÁRIO', help='Conecta, através de ssh no computador em que o usuário está conectado.')
         parser.add_argument(
-            '-v', '--version', action='version', version='%(prog)s - Versão 3.0 Beta')
+            '-v', '--version', action='version', version='%(prog)s - Versão 3.1 Beta')
         argumento = parser.parse_args()
     except:
         # print('Final inesperado do programa.')
