@@ -44,6 +44,7 @@ class ciuls(object):
             listaUsers = []
             choice = 0
             user = []
+            ips = []
         return choice, user, ips
 
 # Função que recebe os dados do comando smbstatus e retorna só usuário e ip
@@ -94,8 +95,8 @@ class ciuls(object):
                 'Não foi possível encontrar o usuário ' + BRED + args + NC + '.')
         return
 
-# Função que pesquisa a permissão de um usuário específico
-    def permissao(self, args):
+# Função que pesquisa os grupos de um usuário específico
+    def grupo(self, args):
         stdin, stdout, stderr = self.ssh.exec_command(
             "/usr/bin/smbstatus -b |grep %s |head -n 1 |tail -n 1 |awk '{print $2}'" % (args))
         user = stdout.read().rstrip().decode('UTF-8')
@@ -118,11 +119,11 @@ if __name__ == "__main__":
         parser.add_argument(
             '-g', '--grafico', metavar='NOME/USUÁRIO', help='Acesso remoto na máquina em que o usuário está conectado.')
         parser.add_argument(
+            '-G', '--grupo', metavar='USUÁRIO', help='Lista os grupos que o usuário tem permissão.')
+        parser.add_argument(
             '-i', '--ip', metavar='NOME/USUÁRIO', help='Mostra o ip do usuário especificado.')
         parser.add_argument(
             '-n', '--nome', metavar='NOME', help='Pesquisa o nome da pessoa e retorna o usuário.')
-        parser.add_argument(
-            '-p', '--permissao', metavar='USUÁRIO', help='Lista as permissões que o usuário tem.')
         parser.add_argument(
             '-s', '--ssh', metavar='NOME/USUÁRIO', help='Conecta, através de ssh no computador em que o usuário está conectado.')
         parser.add_argument(
@@ -157,8 +158,8 @@ if __name__ == "__main__":
                       argumento.ip + NC, "não possui nenhum endereço IP associado.")
         if argumento.nome:  # Se tiver o argumento -n ou --nome
             programa.nome(argumento.nome)
-        if argumento.permissao:  # Se tiver o argumento -p ou --permissao
-            programa.permissao(argumento.permissao)
+        if argumento.grupo:  # Se tiver o argumento -G ou --grupo
+            programa.grupo(argumento.grupo)
         if argumento.ssh:  # Se tiver o argumento -s ou --ssh
             choice, user, ips = programa.consulta(argumento.ssh)
             if len(user):  # caso variavel user não seja nula
