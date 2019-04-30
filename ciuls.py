@@ -65,7 +65,7 @@ class ciuls(object):
 # Função para organizar o endeço ipv4 e ipv6
     def trataIP(self, ip):
         if (ip[:4] != str(2804)):  # tratando ipv4 ou ipv6
-            ip = ip[7:]
+            ip = ip
         return ip
 
 # Função que procura o nome de uma pessoa e retorna seu usuário e o UID
