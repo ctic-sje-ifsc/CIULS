@@ -10,6 +10,9 @@ $ sudo apt-get install ssh vinagre python3 python3-pip python3-setuptools
 
 $ pip3 install paramiko
 
+## Para resolver um problema da biblioteca crypto deve-se atualizar o cryptography, o problema é algo do tipo CryptographyDeprecationWarning:
+$ pip3 install cryptography==2.4.2
+
 ## Instalação:
 
 ```bash
