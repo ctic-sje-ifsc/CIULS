@@ -71,18 +71,18 @@ class ciuls(object):
 # Função que procura o nome de uma pessoa e retorna seu usuário e o UID
     def nome(self, args):
         stdin, stdout, stderr = self.ssh.exec_command(
-            "ldapsearch -x -h vm-bd1 -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep uid: | wc -l" % (args))
+            "ldapsearch -x -h ldap.sj.ifsc.edu.br -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep uid: | wc -l" % (args))
         contNome = stdout.read().rstrip().decode('UTF-8')
         y = int(contNome) + 1
         stdin, stdout, stderr = self.ssh.exec_command(
-            'ldapsearch -x -h vm-bd1 -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep displayName | cut -d ":" -f2 | head -n %s | tail -n %s' % (args, str(y), contNome))
+            'ldapsearch -x -h ldap.sj.ifsc.edu.br -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep displayName | cut -d ":" -f2 | head -n %s | tail -n %s' % (args, str(y), contNome))
         nomes = []
         temp = stdout.read().splitlines()
         if len(temp):
             for i in temp:  # cria uma lista com todos os usuários encontrados
                 nomes.append(i.decode('UTF-8'))
             stdin, stdout, stderr = self.ssh.exec_command(
-                'ldapsearch -x -h vm-bd1 -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep uid: | cut -d ":" -f2 | head -n %s | tail -n %s' % (args, str(y), contNome))
+                'ldapsearch -x -h ldap.sj.ifsc.edu.br -b ou=SaoJose,ou=usuarios,dc=cefetsc,dc=edu,dc=br displayName=*%s* |grep uid: | cut -d ":" -f2 | head -n %s | tail -n %s' % (args, str(y), contNome))
             temp = stdout.read().splitlines()
             usuario = []
             for i in temp:
@@ -127,7 +127,7 @@ if __name__ == "__main__":
         parser.add_argument(
             '-s', '--ssh', metavar='NOME/USUÁRIO', help='Conecta, através de ssh no computador em que o usuário está conectado.')
         parser.add_argument(
-            '-v', '--version', action='version', version='%(prog)s - Versão 3.1 Beta')
+            '-v', '--version', action='version', version='%(prog)s - Versão 3.2')
         argumento = parser.parse_args()
     except:
         # print('Final inesperado do programa.')
