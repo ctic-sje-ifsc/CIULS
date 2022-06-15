@@ -127,7 +127,7 @@ if __name__ == "__main__":
         parser.add_argument(
             '-s', '--ssh', metavar='NOME/USUÁRIO', help='Conecta, através de ssh no computador em que o usuário está conectado.')
         parser.add_argument(
-            '-v', '--version', action='version', version='%(prog)s - Versão 3.2')
+            '-v', '--version', action='version', version='%(prog)s - Versão 3.3')
         argumento = parser.parse_args()
     except:
         # print('Final inesperado do programa.')
@@ -164,7 +164,7 @@ if __name__ == "__main__":
             choice, user, ips = programa.consulta(argumento.ssh)
             if len(user):  # caso variavel user não seja nula
                 ip = programa.trataIP(ips)
-                subprocess.call("ssh -XC ctic@" + ip, shell=True)
+                subprocess.call("ssh -XC root@" + ip, shell=True)
                 sys.exit(0)
             else:
                 print("O usuário", BRED +
