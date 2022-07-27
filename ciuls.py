@@ -97,11 +97,9 @@ class ciuls(object):
 
 # Função que pesquisa os grupos de um usuário específico
     def grupo(self, args):
-        print("teste 1:", args)
         stdin, stdout, stderr = self.ssh.exec_command(
             "/usr/bin/smbstatus -b |grep %s |head -n 1 |tail -n 1 |awk '{print $2}'" % (args))
         user = stdout.read().rstrip().decode('UTF-8')
-        print("teste 2:", user)
         if len(user):
             stdin, stdout, stderr = self.ssh.exec_command("id %s" % (user))
             grupo = stdout.read().rstrip().decode('UTF-8')
