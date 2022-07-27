@@ -97,11 +97,13 @@ class ciuls(object):
 
 # Função que pesquisa os grupos de um usuário específico
     def grupo(self, args):
+        print("teste 1:", args)
         stdin, stdout, stderr = self.ssh.exec_command(
             "/usr/bin/smbstatus -b |grep %s |head -n 1 |tail -n 1 |awk '{print $2}'" % (args))
         user = stdout.read().rstrip().decode('UTF-8')
+        print("teste 2:", user)
         if len(user):
-            stdin, stdout, stderr = self.ssh.exec_command("id %s" % (args))
+            stdin, stdout, stderr = self.ssh.exec_command("id %s" % (user))
             grupo = stdout.read().rstrip().decode('UTF-8')
             print("Grupos ao qual o usuário", BRED +
                   str(user) + NC, "pertence:\n", grupo)
@@ -127,7 +129,7 @@ if __name__ == "__main__":
         parser.add_argument(
             '-s', '--ssh', metavar='NOME/USUÁRIO', help='Conecta, através de ssh no computador em que o usuário está conectado.')
         parser.add_argument(
-            '-v', '--version', action='version', version='%(prog)s - Versão 3.3')
+            '-v', '--version', action='version', version='%(prog)s - Versão 3.4')
         argumento = parser.parse_args()
     except:
         # print('Final inesperado do programa.')
