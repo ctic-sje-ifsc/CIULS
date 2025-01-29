@@ -14,7 +14,7 @@ class ciuls(object):
         self.ssh = paramiko.SSHClient()
         self.ssh.load_system_host_keys()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.ssh.connect(**self.login)
+        self.ssh.connect(**self.login, disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
 
 # Função para pesquisar no DK o argumento passado
 # retorna uma lista de usuários e a quantidade
@@ -127,7 +127,7 @@ if __name__ == "__main__":
         parser.add_argument(
             '-s', '--ssh', metavar='NOME/USUÁRIO', help='Conecta, através de ssh no computador em que o usuário está conectado.')
         parser.add_argument(
-            '-v', '--version', action='version', version='%(prog)s - Versão 3.4')
+            '-v', '--version', action='version', version='%(prog)s - Versão 3.5')
         argumento = parser.parse_args()
     except:
         # print('Final inesperado do programa.')
